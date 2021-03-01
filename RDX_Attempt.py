@@ -290,7 +290,6 @@ def myrhs(t, y):# arg1):
     
     #calculate eq (2) for each condensed species
     massfcdot= w*MW*(1/roe) - np.transpose(massfc, axes=None)*kLG + np.transpose(massfc, axes=None)*sumTerm
-
     
     '''GAS PHASE 
     ### Now look at the gas phase ###
@@ -340,13 +339,17 @@ def myrhs(t, y):# arg1):
     '''
     zdot = np.ndarray.tolist(zdot)
     #print(zdot)
+    print(t)
     return zdot
 
 
-r = ode(myrhs).set_integrator('vode', method='bdf', atol = 1e-5, rtol = 1e-5, max_step = 1e-6) #set the integrator
+r = ode(myrhs).set_integrator('vode', method='bdf', atol = 1e-7, rtol = 1e-6, nsteps = 10E5)#, max_step = 1e-6) #set the integrator
 r.set_initial_value(y0, t0) #.set_f_params(2.0) #set initial values
 t1 = 2.0 #set the stop time
 dt = 0.010 #set the time interval output in results
+
+#increase the number of steps I allow
+#
 
 num_steps = np.floor((t1 - t0)/dt) + 1
 num_steps = int(num_steps)
@@ -379,7 +382,7 @@ while r.successful() and r.t < t1 and k< num_steps: #Added the last and, not sur
     for x in range(answersL):
         answers[k,x] = r.y[x]
        #answers[k,x] = r.y[0,x] ####
-
+    #print(r.t)
 
     #answers[k,0] = r.y[0] ####
     #answers[k,1] = r.y[1] ####
