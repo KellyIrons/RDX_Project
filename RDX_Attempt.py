@@ -10,7 +10,7 @@ Set Up
 import numpy as np
 #from scipy import integrate
 import matplotlib.pylab as mat
-from scipy.integrate import ode
+from scipy.integrate import solve_ivp #ode CHANGED 
 
 
 #Define Constants
@@ -36,6 +36,7 @@ constantMoles = (p['P']*p['Vg'])/(p['Ru']*p['Tg']); #constant number of moles in
 
 #gasI = [299, 293, 298, 20, 16, 18, 17, 19, 1, 320, 319, 291] #indices of gas phase species
 #ng = len(gasI)
+gasI = [5,16,3,36,21,29,24,44,7,2,0,23]
 
 
 #Parse Mechanism
@@ -65,9 +66,19 @@ del lg[2:12]
 #del Rlist[1:499]
 '''
 
-
 ng = len(lg)
+A = np.zeros((1,ng))
+E =  np.zeros((1,ng))
+n = np.zeros((1,ng))
 
+for x in range(ng):
+    A[0,x] = lg[x]["A"]
+    E[0,x] = lg[x]["E"]
+    n[0,x] = lg[x]["n"]
+    
+p['A'] = A
+p['E'] = E
+p['n'] = n
 
 #REDUCED
 '''
@@ -80,7 +91,6 @@ p['R'] = len(Rlist)
 p['J'] = len(Slist)
 J = p['J']
 
-#tomorrow: learn to use numpy arrays #9/23 idk what this is?
 
 MW = np.zeros([1,J])
 #code to make MWs, A, E, n vectors
@@ -108,62 +118,44 @@ initialmass = p['samplemass']
 #initialVector = [1,0,0]
 #initialVector = np.zeros((1,3))
 #initialVector[0,0] = 1
-initialVector = np.zeros((1,J))
+initialVector = np.zeros((1,J+ng))
 initialVector = initialVector.tolist()
 initialVector = initialVector[0]
 initialVector[0] = YinitialRDX ####REDUCED
 y0, t0 = initialVector, 0
 
 
-#y0, t0 = [1.0, 2.0, 3.0, 0.5], 0
 
-
-
-#def myrhs(t, y, p):
 def myrhs(t, y):# arg1):
     
-    '''
-    #9/23 I think this is code from when I was learning to use the python ode solver
-    #dydt = np.array([1,2])
-    dydt = [0,0]
-    #dydt[0] = 1*arg1*y[0] + y[1]
-    #dydt[1] = -arg1*y[1]**2  #[below works, but this does not]
-    dydt[0] = y[0] + y[1]
-    dydt[1] = -1*y[1]**2  #[below works, but this does not]    
-    return dydt
-    #return [1*arg1*y[0] + y[1], -arg1*y[1]**2]
-    '''
-    
     #Unpack "storage" dict p
-    
-    
     roe = p['roe']; Vg = p['Vg']; mN2dot = p['mN2dot']; P = p['P']; Ru = p['Ru']; 
     J = p['J']; R = p['R'];  Tg = p['Tg']; Vc = p['Vc']; Tset = p['Tset']; Ti = p['Ti'];
-    #expmatrixF = p['expmatrixF']; coeffmatrixF = p['coeffmatrixF'];
-    #expmatrixB = p['expmatrixB']; coeffmatrixB = p['coeffmatrixB'];
     minitial = initialmass;
-    #MW = p['MW']; A = p['A']; n = p['n']; E = p['E']; constantMoles = p['constantMoles'];
+    A = p['A']; n = p['n']; E = p['E']; #constantMoles = p['constantMoles'];
     rstruct = Rlist; sstruct = Slist
+    #MW = p['MW'];
 
     
     #Unpack y
-    massfc = y[0:J+1] #mass fraction of each species in condensed phase
-    #molefg = y[(J+1):(J+ng)] #mole fraction of each species in gas phase
+    massfc = y[0:J] #mass fraction of each species in condensed phase
+    molefg = y[(J):(J+ng)] #mole fraction of each species in gas phase
     
     #"Correct" mass and mole fractions
     sumMassFrac = np.sum(massfc)  #sum mass fractions
     massfc = massfc/sumMassFrac #correct mass fractions so they sum to one
-    #sumMoleFrac = np.sum(molefg, axis=1) #sum mole fractions
-    #molefg = molefg/sumMoleFrac #correct mole fractions so they sum to one
+    sumMoleFrac = np.sum(molefg) 
+    if sumMoleFrac != 0: #sum mole fractions #G
+        molefg = molefg/sumMoleFrac #correct mole fractions so they sum to one #G
 
-    '''
-    #Calculate the mass that has left the condensed phase
+    
+    #Calculate the mass that has left the condensed phase  #G
     gasMoles = constantMoles*molefg #gasMoles is a vector of the number of moles of each gas phase species
     gasMoles = 	np.transpose(gasMoles) #transpose gasMoles
-    gasMass = gasMoles*MW[gasI] #gasMass is a vector of the mass of each gas phase species
-    massLoss = np.sum(gasMass, axis=1) - gasMass[ng] #total mass in gas phase (excluding purge gas)
+    gasMass = gasMoles*MW[0,gasI] #gasMass is a vector of the mass of each gas phase species
+    massLoss = np.sum(gasMass, axis=1) - gasMass[0,ng-1] #total mass in gas phase (excluding purge gas)
         # this is ok for now, since the N2 doesn't evaporate atm
-    '''
+
 
     #Calculate the concentrations of the condensed phase species
     massLoss = 0  ####### debugging
@@ -201,30 +193,20 @@ def myrhs(t, y):# arg1):
         #Interpolate to get the most accurate K values
         Kf = ((Kf2-Kf1)/(T2-T1))*(T-T1) + Kf1
         Kb = ((Kb2-Kb1)/(T2-T1))*(T-T1) + Kb1
-        
-        #`print('t = %10.10f, T = %10.10f, Kb = %10.10f' % (t, T, Kb)) #debugging
-        '''
-        print('Kf = %10.10f, Kf1 = %10.10f, Kf2 = %10.10f' % (Kf, Kf1, Kf2))
-        print('Kb = %f, Kb1 = %f, Kb2 = %f' % (Kb, Kb1, Kb2))
-        print('T = %f, T1 = %f, T2 = %f' % (T, T1, T2))
-        '''
     else: #Once T = Tset, the rate constants do not change
-        #Kf = KF[a-1,1:b-1] #set the rate constants to be the last values (T = Tset)
-        #Kb = KB[a-1,1:b-1]
-        Kf = KF[a-1,b-1] #set the rate constants to be the last values (T = Tset)
-        Kb = KB[a-1,b-1]
+        Kf = KF[a-1,1:b] #set the rate constants to be the last values (T = Tset)
+        Kb = KB[a-1,1:b]
         
-        
-    #print(Kb)
-    # ^ this section seems ok
-    #print(Kf)
-    
-    '''
-    #Calculate the liquid-gas evaporation rate constants
-    klg = A*(T**n)*(np.math.exp(-E/(Ru*T)));
-    '''
 
-    kLG = np.zeros([1,J]) #initialize a vector of klg's for all species
+    #Calculate the liquid-gas evaporation rate constants
+    e = np.math.exp(1)
+    klg = A*(T**n)*(e**(-E/(Ru*T)));
+    
+
+
+    kLG = np.zeros([1,J]) #initialize a vector of klg's for all species #GAS
+    for x in range(ng):
+        kLG[0,gasI[x]] = klg[0,x]
     #kLG[gasI] = klg #fill kLG for species that evaporate
         #reminder: gasI = [299, 293, 298, 20, 16, 18, 17, 19, 1, 320, 319, 291]
         #  or      gasI = [6,17,4,37,22,30,25,45,8,3,1,24] (REDUCED)
@@ -291,66 +273,61 @@ def myrhs(t, y):# arg1):
     #calculate eq (2) for each condensed species
     massfcdot= w*MW*(1/roe) - np.transpose(massfc, axes=None)*kLG + np.transpose(massfc, axes=None)*sumTerm
     
-    '''GAS PHASE 
+  
     ### Now look at the gas phase ###
     
     sumTerm = 0 #initialize sum term in eq 6 and 7 %This iterates 11 times!
     for i in range(ng-1): #for each gas phase species except N2
-        sumTerm = sumTerm + (mt*massfc[lg[i]['index']]*klg(i))/(lg[i]['MW']) #add the species's contribution to the sum term    
+        #index = lg[i]['index']
+        #molecW = 
+        #sumTerm = sumTerm +(massfc[index]
+        sumTerm = sumTerm + (mt*massfc[lg[i]['index']]*klg[0,i])/(lg[i]['MW']) #add the species's contribution to the sum term    
     sumTerm = sumTerm + (mN2dot/0.028) #add N2 to the sum term
 
     #Calculate eq 6 for each gas phase speices
     molefgdot = np.zeros((1,ng))
     for n in range (ng-1):
-        molefgdot[n] = ((Ru*Tg)/(P*Vg*lg[n]['MW']))*(mt*massfc[lg[n]['index']]*klg[n] - sumTerm*molefg[n]*lg[n]['MW'])
+        molefgdot[0,n] = ((Ru*Tg)/(P*Vg*lg[n]['MW']))*(mt*massfc[lg[n]['index']]*klg[0,n] - sumTerm*molefg[n]*lg[n]['MW'])
             
-    #Calculate eq 7 for the purge gas
-    molefgdot[ng] = 2#((Ru*Tg)/(P*Vg*lg[ng]['MW']))*(mN2dot - sumTerm*molefg[ng]*lg[ng]['MW'])  
+    #Calculate eq 7 for the purge gas KELLY LOOK AT THIS
+    molefgdot[0,ng-1] = 2#((Ru*Tg)/(P*Vg*lg[ng]['MW']))*(mN2dot - sumTerm*molefg[ng]*lg[ng]['MW'])  
         ### assume nitrogen is the last gas phase species  
                                                      
-    '''
+    
     ### Now combine the two mass flow rate vectors ###
     #massfs = np.concatenate((massfcdot, molefgdot))
-    #zdot = np.transpose(massfs, axes=None)
-    #print(massfcdot)
-    #massfcdot = np.array([-2,1,0.5])
-    #rdx = float(massfcdot[0,0])
-    #print(type(rdx))
-    #print('t = %10.10f, dRDX/dt = %10.10f, Kf = %10.10f, T = %10.10f' % (t,rdx, Kf, T))
-    
-    
-    ### ERROR ###
-    
-    #print('t = %10.10f, Kf = %10.10f' % (t, Kf))
-    #print('t = %10.10f, T = %10.10f' % (t, T))
-    zdot = (massfcdot)
-    #zdot = np.array([-1, 2, 0.5])
-    '''
+    massfs = np.hstack((massfcdot, molefgdot))
+    zdot = np.transpose(massfs, axes=None)  
+    #zdot = (massfcdot)
 
-    #dydt = np.array([1,2])
-    dydt = [0,0,0,2]
-    #dydt[0] = 1*arg1*y[0] + y[1]
-    #dydt[1] = -arg1*y[1]**2  #[below works, but this does not]
-    dydt[0] = y[0] + y[1]
-    dydt[1] = -1*y[1]**2  #[below works, but this does not]    
-    dydt[2] = 2+y[2]
-    dydt[3] = y[0] + y[3]
-    zdot = dydt
-    '''
     zdot = np.ndarray.tolist(zdot)
     #print(zdot)
     print(t)
     return zdot
 
 
-r = ode(myrhs).set_integrator('vode', method='bdf', atol = 1e-7, rtol = 1e-6, nsteps = 10E5)#, max_step = 1e-6) #set the integrator
-r.set_initial_value(y0, t0) #.set_f_params(2.0) #set initial values
+#r = ode(myrhs).set_integrator('vode', method='bdf', atol = 1e-7, rtol = 1e-6, nsteps = 10E5)#, max_step = 1e-6) #set the integrator
+#r = ode(myrhs).set_integrator('vode', method='bdf', atol = 1e-7, rtol = 1e-6, nsteps = 10E5)Ω
+#r.set_initial_value(y0, t0) #.set_f_params(2.0) #set initial values
 t1 = 2.0 #set the stop time
 dt = 0.010 #set the time interval output in results
 
+r = solve_ivp(myrhs, (0,t1), y0, method="LSODA", vectorized = True)
+
+time = r['t']
+solutionM = r['y']
+solutionM = solutionM.transpose()
+solutionM = solutionM[:,0:J-1]
+
+mat.plot(time, solutionM)
+mat.grid('on')
+mat.xlabel('Time [seconds]')
+mat.ylabel('Mass Fraction')
+
+
 #increase the number of steps I allow
 #
-
+''' CHANGED
 num_steps = np.floor((t1 - t0)/dt) + 1
 num_steps = int(num_steps)
 tarray = np.zeros((num_steps, 1))
@@ -362,6 +339,7 @@ tarray[0] = t0
 for x in range(answersL):
     #answers[0,x] = y0[0,x]
     answers[0,x] = y0[x]
+'''
 
 '''
 #answers[0,0] = y0[0] ####
@@ -370,7 +348,8 @@ for x in range(answersL):
 #answers[0,3] = y0[3]
 '''
 
-
+'''
+CHANGED
 k = 1
 while r.successful() and r.t < t1 and k< num_steps: #Added the last and, not sure if correct
 #while r.t < t1:
@@ -397,4 +376,5 @@ mat.plot(tarray, A)
 mat.grid('on')
 mat.xlabel('Time [seconds]')
 mat.ylabel('Mass Fraction')
+'''
 
