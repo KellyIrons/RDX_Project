@@ -86,6 +86,7 @@ def RDXskeletalparser():
         oldS = species['index']
         ind = indices.index(oldS)
         species['index'] = ind
+        species['MW'] = Slist[ind]['MW']
     S_lg = lg
     
 
