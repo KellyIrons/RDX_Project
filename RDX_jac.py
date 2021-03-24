@@ -46,7 +46,7 @@ def rdx_jac(t, Tset):
         #print(np.shape(Jac[:,j]))
         #Jac = (zdot_new - zdot_o)/dist
         Jac_vector = (zdot_new - zdot_o)/dist
-        for i in range(J+ng):
+        for i in range(J):#G
             Jac[i,j] = Jac_vector[i]
     
     
