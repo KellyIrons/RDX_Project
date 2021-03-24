@@ -67,13 +67,14 @@ def RDX_zdot(t,y, Rlist, Slist, lg, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     
     #Unpack y
     massfc = y[0:J] #mass fraction of each species in condensed phase
-    molefg = y[(J):(J+ng)] #mole fraction of each species in gas phase
+  #G  molefg = y[(J):(J+ng)] #mole fraction of each species in gas phase
     #print(np.shape(massfc))
     
     
     #"Correct" mass and mole fractions
     sumMassFrac = np.sum(massfc)  #sum mass fractions
     massfc = massfc/sumMassFrac #correct mass fractions so they sum to one
+    '''G
     sumMoleFrac = np.sum(molefg) 
     if sumMoleFrac != 0: #sum mole fractions #G
         molefg = molefg/sumMoleFrac #correct mole fractions so they sum to one #G
@@ -88,7 +89,7 @@ def RDX_zdot(t,y, Rlist, Slist, lg, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     massLoss = np.sum(gasMass, axis=1) - gasMass[0,ng-1] #total mass in gas phase (excluding purge gas)
         # this is ok for now, since the N2 doesn't evaporate atm
 
-
+    '''
     #Calculate the concentrations of the condensed phase species
     massLoss = 0  ####### debugging
     mt = minitial - massLoss #total mass in condensed phase
@@ -207,7 +208,7 @@ def RDX_zdot(t,y, Rlist, Slist, lg, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     
   
     ### Now look at the gas phase ###
-    
+    '''
     sumTerm = 0 #initialize sum term in eq 6 and 7 %This iterates 11 times!
     for i in range(ng-1): #for each gas phase species except N2
         #index = lg[i]['index']
@@ -225,10 +226,11 @@ def RDX_zdot(t,y, Rlist, Slist, lg, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     molefgdot[0,ng-1] = 2#((Ru*Tg)/(P*Vg*lg[ng]['MW']))*(mN2dot - sumTerm*molefg[ng]*lg[ng]['MW'])  
         ### assume nitrogen is the last gas phase species  
                                                      
-    
+    '''
     ### Now combine the two mass flow rate vectors ###
     #massfs = np.concatenate((massfcdot, molefgdot))
-    massfs = np.hstack((massfcdot, molefgdot))
+    #Gmassfs = np.hstack((massfcdot, molefgdot))
+    massfs = massfcdot
     zdot = np.transpose(massfs, axes=None)  
     #zdot = (massfcdot)
 
