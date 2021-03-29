@@ -10,23 +10,26 @@ def rdx_qss_finder(r,N,Tset, S):
     #Set up
     import numpy as np
     from RDX_jac import rdx_jac
+    import matplotlib.pyplot as plt
     
     #Pull apart r
     t = r.t; y = r.y
-    tmin = min(t); tmax = max(t)
+    #tmin = min(t)
+    tmin = 0.005
+    tmax = max(t)
     t_array = np.linspace(tmin,tmax,N)
     index = np.zeros((1,N))
-    index[0,0] = 1
+    #index[0,0] = 2
     time = np.zeros((1,N))
     diag_vecs = np.zeros((S,N))
     
     
-    for i in range(N-1):
+    for i in range(N):
         a = 1
-        while t[a] < t_array[i+1] and a <= len(t):
+        while t[a] < t_array[i] and a <= len(t):
             a = a+1
-        index[0,i+1] = int(a)
-        time[0,i+1] = t[int(a)]
+        index[0,i] = int(a)
+        time[0,i] = t[int(a)]
         
      
     for i in range(N):
@@ -46,11 +49,30 @@ def rdx_qss_finder(r,N,Tset, S):
            # diag_vec[j,0] = np.abs((Jac[j,j])**(-1))
             diag_vecs[j,i] = np.abs((Jac[j,j])**(-1))
         
+            #Structure of diag_vecs: each row is a species, 
+            # each column is a time step
+    
         
         
         print(i)
+     
 
-    return(index, time, diag_vecs)
+    
+
+    fig, ax1 = plt.subplots()
+
+    #Time to plot!
+    for i in range(S):
+
+        vec = np.array(diag_vecs[i,:])        
+        ax1.loglog(t_array, vec)
+
+    ax1.set(title='RDX Decomposition - Skeletal Mechanism')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Time (s)')
+    plt.grid()
+    plt.show()
+    return(index, t_array, diag_vecs)
     
     
     
