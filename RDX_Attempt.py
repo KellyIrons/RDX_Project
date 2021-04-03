@@ -11,6 +11,10 @@ import numpy as np
 #from scipy import integrate
 import matplotlib.pylab as mat
 from scipy.integrate import solve_ivp #ode CHANGED 
+import time
+
+
+startTime = time.time()
 
 
 #Define Constants
@@ -140,6 +144,7 @@ def myrhs(t, y):# arg1):
     #Unpack y
     massfc = y[0:J] #mass fraction of each species in condensed phase
     molefg = y[(J):(J+ng)] #mole fraction of each species in gas phase
+
     
     #"Correct" mass and mole fractions
     sumMassFrac = np.sum(massfc)  #sum mass fractions
@@ -303,6 +308,7 @@ def myrhs(t, y):# arg1):
     zdot = np.ndarray.tolist(zdot)
     #print(zdot)
     print(t)
+
     return zdot
 
 
@@ -312,17 +318,35 @@ def myrhs(t, y):# arg1):
 t1 = 2.0 #set the stop time
 dt = 0.010 #set the time interval output in results
 
-r = solve_ivp(myrhs, (0,t1), y0, method="LSODA", vectorized = True)
+r = solve_ivp(myrhs, (0,t1), y0, method="LSODA", vectorized = True, atol = 1e-10)
 
-time = r['t']
+
+
+TIME = r['t']
 solutionM = r['y']
 solutionM = solutionM.transpose()
 solutionM = solutionM[:,0:J-1]
+#JAC = r.jac(0,solutionM[0,:])
 
-mat.plot(time, solutionM)
+mat.plot(TIME, solutionM)
 mat.grid('on')
 mat.xlabel('Time [seconds]')
 mat.ylabel('Mass Fraction')
+
+
+
+indices = [12, 1, 23, 17, 36, 16, 34, 44]
+
+mat.plot(TIME, solutionM[:,indices])
+mat.grid('on')
+mat.xlabel('Time [seconds]')
+mat.ylabel('Mass Fraction')
+mat.legend(('INT174a', 'INT175a', "N2", "INT86A", "HCN", "N20", "INT101a", "H2O"))
+
+
+endTime = time.time() - startTime
+print('Run time: ', endTime)
+
 
 
 #increase the number of steps I allow
