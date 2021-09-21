@@ -62,7 +62,7 @@ def compute_DIC(mechobj, mysample, reduction_type):
         #booli = S_ind[i]['indbool']
         #indj = S_ind[i]['ind'] #species indices
         booli = S_ind[i]['ind'] #reactions with species i
-        indj = S_ind[i]['other_spec'] #species on the other side of those reactions
+        indj = S_ind[i]['other_spec'] #species involved in those reactions
 
         for j in indj:
             #boolj = net.indr[net.inds == j]  # reactions containing species j

@@ -3,17 +3,29 @@
 Mechanism Object Creator
 """
 
-def my_mech_obj(sample, t, Tset):
+def my_mech_obj(sample, t, Tset, Rlist, Slist, lg, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB):
     
     import numpy as np
     
+    '''
     from RDXskeletalparser import RDXskeletalparser
     [Rlist, Slist, lg] = RDXskeletalparser()
+    
+
     
     
     from stoichcalc import stoichcalc
     [expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB] = stoichcalc(Rlist,Slist)
+    '''
+    #Rlist = Rlist[0]
+    #Slist = Slist[0:3]
     
+    '''
+    expmatrixF = expmatrixF[0:4,0]
+    expmatrixB = expmatrixB[0:4,0]
+    coeffmatrixF = coeffmatrixF[[0:4,0]]
+    coeffmatrixB = coeffmatrixB[[0:4,0]]
+    '''
     
     J = len(Slist)
     R = len(Rlist)
@@ -132,14 +144,24 @@ def my_mech_obj(sample, t, Tset):
                 pos[0,i] += omega[0,j]*coeffmatrixF[i,j]
             else:
                 neg[0,i] += omega[0,j]*coeffmatrixF[i,j]
-    PA = pos*MW*(1/rho)
-    CA = neg*MW*(1/rho)
-                
+    #PA = pos*MW*(1/rho)
+    #CA = abs(neg*MW*(1/rho))
+    PA = pos
+    CA = abs(neg)
             
 
-    #Find the reactions containing each species
+    #Find the reactions containing each species, also make species name list
     S_ind = []
+    speciesnames = []
+    
+    '''
     for s in range(J):
+        speciesnames.append(Slist[s]['name'])
+    '''
+    
+    for s in range(J):
+       # speciesnames = speciesnames.append(['kelly'])
+        speciesnames.append(Slist[s]['name'])
         sindbool = [];
         sind = [];
         other_spec = []
@@ -159,13 +181,15 @@ def my_mech_obj(sample, t, Tset):
                 '''
         Other_spec = []
         for i in other_spec:
-            if i not in Other_spec and i!=s:
+            #if i not in Other_spec and i!=s:
+            if i not in Other_spec:
                 Other_spec.append(i)
             
         s_ind = {'indbool':sindbool, 'ind':sind, 'other_spec': Other_spec}
         S_ind.append(s_ind)
         
-    mechobj = {'ns':J, 'nr':R, 'nup': nup, 'nur':nur, 'omega':omega, 'PA':PA, 'CA':CA, 'S_ind':S_ind}
+    mechobj = {'ns':J, 'nr':R, 'nup': nup, 'nur':nur, 'omega':omega, 'PA':PA, 
+               'CA':CA, 'S_ind':S_ind, 'species_names':speciesnames}
 
 
     return mechobj
