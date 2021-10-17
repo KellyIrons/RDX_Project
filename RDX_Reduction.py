@@ -7,7 +7,7 @@ N = 10
 R = 1
 targets = ['RDX']
 reduction_type = 'species'
-tol = 0.05
+tol = 5 # percent
 
 
 from RDXskeletalparser import RDXskeletalparser
@@ -33,6 +33,7 @@ import matplotlib.pylab as plt
 # Run the simulation
 [TIME_o, solutionM_o] = RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB)
 plt.plot(TIME_o, solutionM_o)
+plt.ylim((0, 0.15))
 plt.show()
 
 
@@ -50,7 +51,6 @@ removed = []
 TIME_r = []
 solutionM_r = []
 
-
 # While the error is less than the error tolerance
 while error <= tol:
     
@@ -58,21 +58,48 @@ while error <= tol:
     if len(removed) > 0:
         TIME_f = TIME_r
         solutionM_f = solutionM_r
+        Slist = new_Slist
+        Rlist = new_Rlist
+        lg = new_lg
 
     # Remove a set number of species and remake the mechanism
-    [new_Rlist, new_Slist, new_lg, removed] = remove_and_remake(sort_ind, R, removed)
+    [new_Rlist, new_Slist, new_lg, removed, sort_ind] = remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg)
     print('%i Species Removed' % len(removed))
+    
+    
+    # Temporary: Incorporate into remove and remake if it works
+    [KF, KB] = rateConstantCalc2(new_Rlist, new_Slist, Tset)
+    [expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB] = stoichcalc(new_Rlist,new_Slist)
+    
+    
     
     # Re-run the simulation
     [TIME_r, solutionM_r] = RDX_sim(new_Rlist, new_Slist, new_lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB)
     
     # Calculae the error
-    error = RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N)
+    [error, results, ts] = RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N, removed)
+    
+    
+    import matplotlib.pylab as plt
+    plt.plot(ts[0,:], results[0,:])
+    #plt.title('Median Percent Error')
+   # plt.xlabel('Time')
+  #  plt.ylabel('Percent Error')
+    plt.show()
+    
     
     plt.plot(TIME_r, solutionM_r)
-    plt.title = error
+    #plt.title = error
+    plt.ylim((0, 0.15))
+ #   plt.title('Species Mass Fractions')
+ #   plt.xlabel('Time')
+  #  plt.ylabel('Mass Fraction')
     plt.show()
 
 
 removed = removed[:-1]
 print('%i Species Removed' % len(removed))
+
+
+plt.plot(TIME_f, solutionM_f[:,0:len(Slist)])
+plt.ylim((0, 0.15))

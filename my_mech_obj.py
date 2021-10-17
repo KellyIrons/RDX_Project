@@ -105,7 +105,7 @@ def my_mech_obj(sample, t, Tset, Rlist, Slist, lg, expmatrixF, coeffmatrixF, exp
     Wf = Kf*coeffmatrixF*pitermf
     Wb = Kb*coeffmatrixB*pitermb #DOUBLE CHECK THIS TOO
     omegaf = Kf*pitermf
-    omegab = Kb*pitermb
+    omegab = Kb*pitermb 
         #Wf and Wb are matrices of the K*coeff*piterm term for each species and reaction
     #sum each row of Wf and Wb to get wf and wb for each species
     wf = Wf.sum(axis=1)
@@ -146,8 +146,22 @@ def my_mech_obj(sample, t, Tset, Rlist, Slist, lg, expmatrixF, coeffmatrixF, exp
                 neg[0,i] += omega[0,j]*coeffmatrixF[i,j]
     #PA = pos*MW*(1/rho)
     #CA = abs(neg*MW*(1/rho))
+    
+    ng = len(lg)
+    klg = np.zeros((1,ng))
+    Ru = 8.314
+    gasI = []
+    for x in range(ng):
+        klg[0,x] = lg[x]["A"]*(T**lg[x]["n"])*(np.e**(-lg[x]["E"]/(Ru*T)));
+        gasI.append(lg[x]['index'])
+    
+    kLG = np.zeros([1,J]) #initialize a vector of klg's for all species #GAS
+    for x in range(ng):
+        kLG[0,gasI[x]] = klg[0,x]
+    
     PA = pos
     CA = abs(neg)
+    #CA = abs(neg) + np.transpose(massfc, axes=None)*kLG # check!!!
             
 
     #Find the reactions containing each species, also make species name list
