@@ -11,7 +11,11 @@ def overall_EP(N, TIME, solutionM, Tset, Rlist, Slist, lg, expmatrixF, coeffmatr
     t_array = np.linspace(0,max(TIME), N)
     index = np.zeros((N))
     time = np.zeros((N))
-    EP_all = np.zeros((len(Slist),N))
+    if reduction_type in ['species', 'S']:
+        EP_all = np.zeros((len(Slist),N))
+    
+    else:
+        EP_all = np.zeros((len(Rlist),N))
     
     for i in range(N):
         a = 1
@@ -27,7 +31,7 @@ def overall_EP(N, TIME, solutionM, Tset, Rlist, Slist, lg, expmatrixF, coeffmatr
         
         t = time[i]
     
-        sample = solutionM[int(index[i]),:]
+        sample = solutionM[int(index[i]),0:len(Slist)]
         samplesign = sample >= 0
         
         #if samplesign.all:

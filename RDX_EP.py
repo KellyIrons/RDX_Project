@@ -29,6 +29,7 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
     [DIC_spec, DIC_reac] = compute_DIC(mechobj, mysample, reduction_type)
     
     " TEST TO MAKE SURE ZEROS ARE SYMMETRIC"
+    '''
     A = np.ceil(DIC_spec)
     B = np.transpose(A[0:53,:])
     C = A[0:53,:] - B[:,0:53]
@@ -40,7 +41,7 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
     if not E.all():
         print('error 2!')
     
-    
+    '''
 
     #myns = mechobj.ns
     #mynr = mechobj.nr

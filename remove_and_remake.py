@@ -1,7 +1,7 @@
 """
 RDX Remove Species and Remake Mechanism
 """
-def remove_and_remake(sort_ind, N, removed):
+def remove_and_remake(sort_ind, N, removed, Rlist, Slist, lg, reduction_type):
     
     # sort_ind = ranked species indices from rank_EP
     # N = the number of species to be removed *in this iteration*
@@ -9,76 +9,92 @@ def remove_and_remake(sort_ind, N, removed):
     
     # Get the original Rlist and Slist --> later can make this a function input
     # to make it more efficient if this function is called multiple times
-    from RDXskeletalparser import RDXskeletalparser
-    [Rlist, Slist, lg] = RDXskeletalparser()
+   # from RDXskeletalparser import RDXskeletalparser
+   # [Rlist, Slist, lg] = RDXskeletalparser()
     
     # Initialize the outputs
-    new_Rlist = Rlist
-    new_Slist = Slist
-    new_lg = lg
+    new_Rlist = Rlist.copy()
+    new_Slist = Slist.copy()
+    new_lg = lg.copy()
     
     
     # Identify the species to remove (take the N lowest)
-    if len(removed) != 0:
-        to_remove = sort_ind[-N+-len(removed):-len(removed)] 
-    else:
-        to_remove = sort_ind[-N:]
-    #to_remove = sort_ind[-N - removed: -removed]
+    to_remove = sort_ind[-N:]
     
-    
-    # Go through each species and "remove" it from the mechanism
-    ''' #OLD METHOD
-    for i in reversed(range(len(to_remove))):
-        
-        ind = to_remove[i]
+    if reduction_type in ['S', 'species']:
 
-        # Remove from Slist
-        new_Slist[ind]['MW'] = 0
-        new_Slist[ind]['rad'] = 0
-        new_Slist[ind]['D'] = 0
+        for i in reversed(range(len(to_remove))):
+            ind = to_remove[i]
+            
+            print(Slist[ind]['name'])
+            
+            #Remove the species
+            del new_Slist[ind]
         
-        # Remove from Rlist
-        for r in range(len(new_Rlist)):
-            if ind in new_Rlist[r]['reacI']:
-                pos = new_Rlist[r]['reacI'].index(ind)
-                new_Rlist[r]['rcoeffs'].pop(pos)
-                new_Rlist[r]['reactants'].pop(pos)
-                new_Rlist[r]['reacI'].remove(ind)
-                
-            elif ind in Rlist[r]['prodI']:
-                pos = Rlist[r]['prodI'].index(ind)
-                new_Rlist[r]['pcoeffs'].pop(pos)
-                new_Rlist[r]['products'].pop(pos)
-                new_Rlist[r]['prodI'].remove(ind)
+            count =  0
+            for i in range(len(new_Rlist)):
+                indices = new_Rlist[i-count]['reacI'] + new_Rlist[i-count]['prodI']
+                if ind in indices:
+                    del new_Rlist[i-count]
+                    count = count + 1
+                else: 
+                    for j in range(len(new_Rlist[i-count]['reacI'])):
+                        if new_Rlist[i-count]['reacI'][j] > ind:
+                            new_Rlist[i-count]['reacI'][j] = new_Rlist[i-count]['reacI'][j] - 1
+                    for j in range(len(new_Rlist[i-count]['prodI'])):
+                        if new_Rlist[i-count]['prodI'][j] > ind:
+                            new_Rlist[i-count]['prodI'][j] = new_Rlist[i-count]['prodI'][j] - 1
+                            
+            count = 0               
+            for i in range(len(lg)):
+                if lg[i-count]['index'] > ind:
+                    lg[i-count]['index'] = lg[i-count]['index'] - 1
+                            
+            
+            removed.append(ind)
+            
+            count = 0
+            sort_ind = sort_ind[0:-1]
+            for i in range(len(sort_ind)):
+                if sort_ind[i] > ind:
+                    sort_ind[i] = sort_ind[i] - 1
+            
         
-        # Remove from lg
+        new_lg = lg
+        
+    else:
+        
+        for i in reversed(range(len(to_remove))):
+            ind = to_remove[i]
+            
+            print(Rlist[ind]['eq'])
+            
+            # Remove the reaction
+            del new_Rlist[ind]
+            
+            # Perform integrity check
+            # For each species in the reaction
+                # Check to see if it is involved in other reactions
+                    # if not, remove the species and any associated reactions
+            
+            
+            
+
+                            
+            
+            removed.append(ind)
+            
+            # Update indices in sort_ind
+            count = 0
+            sort_ind = sort_ind[0:-1]
+            for i in range(len(sort_ind)):
+                if sort_ind[i] > ind:
+                    sort_ind[i] = sort_ind[i] - 1
+        
+        
     
-        for i in range(len(new_lg)):
-            if ind == new_lg[i]['index']:
-                new_lg[i]['A'] = 0
-                new_lg[i]['n'] = 0
-                new_lg[i]['E'] = 0
-                new_lg[i]['MW'] = 0
-     
-        '''
-        
-        
-        # NEW METHOD
-    for i in reversed(range(len(to_remove))):
-        
-        # Identify the species to remove
-        ind = to_remove[i]
-        
-        # Identify the reactions containing that species and set the 
-        # appropriate reaction parameters to empty
-        for r in range(len(new_Rlist)):
-            if ind in new_Rlist[r]['reacI'] or ind in Rlist[r]['prodI']:
-                new_Rlist[r]['reacI'] = []
-                new_Rlist[r]['prodI'] = []
-                new_Rlist[r]['reactants'] = []
-                new_Rlist[r]['products'] = []
-        
-        
-        removed.append(ind)
-    
-    return [new_Rlist, new_Slist, new_lg, removed]
+    return [new_Rlist, new_Slist, new_lg, removed, sort_ind]
+
+
+
+

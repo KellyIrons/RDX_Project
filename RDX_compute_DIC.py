@@ -111,7 +111,7 @@ def compute_DIC(mechobj, mysample, reduction_type):
                 DIC_reac[i, k] = abs(nup[i, k] - nur[i, k]) * omega[k]
 
                 # Normalize
-                DIC_reac[i, k] = abs(DIC_reac[i, k]) / max(max(PA[i], CA[i]), 1e-60)
+                DIC_reac[i, k] = abs(DIC_reac[i, k]) / max(max(PA[0,i], CA[0,i]), 1e-60)
 
         #for i in range(mynr):
 

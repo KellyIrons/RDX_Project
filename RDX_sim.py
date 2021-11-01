@@ -13,7 +13,7 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     Ru = 8.314 #Gas constant - J/molK
     mN2dot = 1.4583e-06 #mass flow of purge gas (guess) - kg/s
     Ti = 337.6 #initial temp - K
-    Tset = 538 #set temp - K
+    #Tset = 538 #set temp - K
     rho = 1820 #liquid density of RDX - kg/m^3
     samplemass = 0.0005 #this is probably correct
     Vc = samplemass/rho
@@ -25,12 +25,14 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     n = np.zeros((1,ng))
     gasI = []
     
-    
+    '''
     for x in range(ng):
         A[0,x] = lg[x]["A"]
-        E[0,x] = lg[x]["E"]
         n[0,x] = lg[x]["n"]
-        gasI.append(lg[x]['index'])
+        E[0,x] = lg[x]["E"]
+    '''
+    for x in range(ng):    
+       gasI.append(lg[x]['index'])
         #NOTE: need to make some sort of correction at some point for gas 
         #   phase species that are removed
         
@@ -53,6 +55,7 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     initialVector = initialVector.tolist()
     initialVector = initialVector[0]
     initialVector[0] = YinitialRDX ####REDUCED
+    initialVector[J] = 1
     y0, t0 = initialVector, 0
 
 
@@ -134,8 +137,9 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
         #Calculate the liquid-gas evaporation rate constants
         #e = np.math.exp(1)
         klg = np.zeros((1,ng))
-        #klg = A*(T**n)*(e**(-E/(Ru*T)));
-        
+        for x in range(ng):
+            klg[0,x] = lg[x]["A"]*(T**lg[x]["n"])*(np.e**(-lg[x]["E"]/(Ru*T)));
+
     
     
         kLG = np.zeros([1,J]) #initialize a vector of klg's for all species #GAS
@@ -217,7 +221,7 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
             #molecW = 
             #sumTerm = sumTerm +(massfc[index]
             sumTerm = sumTerm + (mt*massfc[lg[i]['index']]*klg[0,i])/(lg[i]['MW']) #add the species's contribution to the sum term    
-        sumTerm = sumTerm + (mN2dot/0.028) #add N2 to the sum term
+        sumTerm = sumTerm + (mN2dot/0.028014) #add N2 to the sum term
     
         #Calculate eq 6 for each gas phase speices
         molefgdot = np.zeros((1,ng))
@@ -255,7 +259,7 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     TIME = r['t']
     solutionM = r['y']
     solutionM = solutionM.transpose()
-    solutionM = solutionM[:,0:J]
+    #solutionM = solutionM[:,0:J]
     #solutionM = solutionM[:,0:J-1]
     
     return [TIME, solutionM]

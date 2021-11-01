@@ -42,7 +42,7 @@ plt.show()
 
 
 # Rank EP
-[ranked_EP, ranked_spec, sort_ind] = rank_EP(EP, mechobj)
+[ranked_EP, ranked_spec, sort_ind] = rank_EP(EP, mechobj, reduction_type, Rlist)
 
 
 # Initialize an error measure
@@ -63,7 +63,7 @@ while error <= tol:
         lg = new_lg
 
     # Remove a set number of species and remake the mechanism
-    [new_Rlist, new_Slist, new_lg, removed, sort_ind] = remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg)
+    [new_Rlist, new_Slist, new_lg, removed, sort_ind] = remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type)
     print('%i Species Removed' % len(removed))
     
     
@@ -82,18 +82,11 @@ while error <= tol:
     
     import matplotlib.pylab as plt
     plt.plot(ts[0,:], results[0,:])
-    #plt.title('Median Percent Error')
-   # plt.xlabel('Time')
-  #  plt.ylabel('Percent Error')
     plt.show()
     
     
     plt.plot(TIME_r, solutionM_r)
-    #plt.title = error
     plt.ylim((0, 0.15))
- #   plt.title('Species Mass Fractions')
- #   plt.xlabel('Time')
-  #  plt.ylabel('Mass Fraction')
     plt.show()
 
 
@@ -103,3 +96,7 @@ print('%i Species Removed' % len(removed))
 
 plt.plot(TIME_f, solutionM_f[:,0:len(Slist)])
 plt.ylim((0, 0.15))
+plt.show()
+
+
+

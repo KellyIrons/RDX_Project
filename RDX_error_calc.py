@@ -2,7 +2,7 @@
 RDX Error Calculation
 """
 
-def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N):
+def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N, removed):
     
     
     #Measure the median percent difference in results at set time steps
@@ -17,7 +17,7 @@ def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N):
     ts = np.zeros((1,N))
     frac = 1/N
     for i in range(N):
-        ts[0,i] = frac*(i+1)
+        ts[0,i] = T*frac*(i+1)
         
         #KELLY - see what this looks like, can I use linspace?
     
@@ -43,6 +43,8 @@ def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N):
     
     [J,b] = np.shape(solutionM_o)
     results = np.zeros((1,N))
+    for i in range(len(removed)):
+        solutionM_o =np.delete(solutionM_o, removed[i], axis=1)
 
     #For each time step - can I vectorize this?
     for i in range(N):
@@ -58,9 +60,11 @@ def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N):
         results[0,i] = np.median(p_diff)
         #take the average 
     
-    error = max(results[0,:])    
+    error = np.median(results[0,:])   
+
+    
         
-    import matplotlib.pylab as plt
+
    
     '''
     #plt.plot(TIME_o, solutionM_o, TIME_r, solutionM_r)
@@ -68,4 +72,7 @@ def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N):
     plt.show()
     '''
     
-    return(error)
+    return(error, results, ts)
+
+
+
