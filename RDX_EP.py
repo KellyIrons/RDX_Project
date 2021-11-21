@@ -26,7 +26,7 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
     import numpy as np
     
     from RDX_compute_DIC import compute_DIC
-    [DIC_spec, DIC_reac] = compute_DIC(mechobj, mysample, reduction_type)
+    #[DIC_spec, DIC_reac] = compute_DIC(mechobj, mysample, reduction_type)
     
     " TEST TO MAKE SURE ZEROS ARE SYMMETRIC"
     '''
@@ -78,6 +78,14 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
         target_indices.append(myns)
 
     DIC_spec, DIC_reac = compute_DIC(mechobj, mysample, reduction_type)
+    my_DIC = np.copy(DIC_spec)
+    
+    coeffs = np.zeros((myns, 1))
+
+    # Added code- make lists to track position
+    ind_list = []
+    for i in range(myns):
+        ind_list.append([])
 
 
     # ------------
@@ -121,6 +129,7 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
                 #indj = net.indsj[net.indsi == i]
                 indj = S_ind[i]['other_spec'] 
                 # If coeff is positive, store coeff and continue
+            
 
                 if array_up[i] > 0.0:
                     coeff_up = array_up[i]
@@ -136,6 +145,10 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
                             if coeff_down > EPtmp[j]:
                                 EPtmp[j] = coeff_down
                                 array_down[j] = coeff_down
+                                #ind_list[j].append([i,j])
+                                ind_list[j].append(i)
+                                
+                #ind_list[i] = list(set(ind_list[i])) #Remove duplicates
 
             if list(EPcomp) == list(EPtmp):
                 flag = False
@@ -149,6 +162,10 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
                 EP_spec_dict['HeatRelease'] = EPtmp
 
             array_up[:] = array_down[:]
+            old_coeffs = array_down[:].reshape(array_down.shape[0],1)
+            coeffs = np.append(coeffs, old_coeffs,1)
+            
+            
         
         # Adjust maximum coefficient for target/species pair
         EP_spec = np.fmax(EP_spec, EPtmp)
@@ -176,8 +193,11 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
 
     if reduction_type in ['species', 'S']:
         EP = EP_spec
+        DIC = DIC_spec
     else:
         EP = EP_reac
+        DIC = DIC_reac
+        
 
-    #print(np.shape(EP_spec))
-    return EP
+    #print(np.shape(EP_spec)), 
+    return [EP, ind_list, my_DIC, coeffs]
