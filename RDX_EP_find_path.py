@@ -2,7 +2,7 @@
 RDX_find_EP_path
 """
 
-def RDX_find_EP_path(ind_list, mechobj, EP, DIC_ind, DIC_spec, targets):
+def RDX_find_EP_path(ind_list, mechobj, EP, DIC_ind, DIC_spec, targets, coeff_list):
     
     # This is going to be slowwwwww, try to speed it up later
     
@@ -37,6 +37,7 @@ def RDX_find_EP_path(ind_list, mechobj, EP, DIC_ind, DIC_spec, targets):
         # If the list isn't empty, then the target and and the species have a path
         #  of more than one edge
         DIC = DIC_spec[:, :, int(DIC_ind[i])]
+        coeff_list_i = coeff_list[:,:,int(DIC_ind[i])]
         
         if len(ind_list[i]) > 0:
             
@@ -48,16 +49,21 @@ def RDX_find_EP_path(ind_list, mechobj, EP, DIC_ind, DIC_spec, targets):
             # Check for repeats in ind_list (this complicates things)
             counts = np.ones(len(temp_ind_list))
             if mid_nodes != len(temp_ind_list):
-                for j in range(len(temp_ind_list)):
+                for j in (range(len(temp_ind_list))):
+                    
                     repeats = ind_list[i].count(temp_ind_list[j])
                     counts[j] = int(repeats)
            
             # Modify the ind list to remove duplicates
-            ind_list[i] = temp_ind_list
+            mid_nodes = len(temp_ind_list) #need to remove redunancies if I get this part to work
+            ind_list_i = np.copy(temp_ind_list)
            
+            counts = np.hstack(([1], np.hstack((counts, [1]))))
+           
+            print(counts)
             
             # Total number of possible paths, given the node list
-            perm = list(permutations(ind_list[i], mid_nodes))
+            perm = list(permutations(ind_list_i, mid_nodes))
             
             perms = []
             
@@ -79,20 +85,37 @@ def RDX_find_EP_path(ind_list, mechobj, EP, DIC_ind, DIC_spec, targets):
                     coeff = 1
                     # calculate the EP for the combination and store
                     for j in range(len(perms[p])-1):
-                      #  print(j)
                         
-                        if perms[p][j] != perms[p][j+1]: # not sure what this does
+                        '''
+                        # If both the current species and the next species aren't repeated
+                        if counts[j] == 1 and counts[j+1] == 1:
                             if dic_direction[q][j]:
-                                #coeff = coeff*DIC[j,j+1] # this is wrong!
                                 coeff = coeff*DIC[perms[p][j], perms[p][j+1]]
-                                ind1 = perms[p][j]
-                                ind2 = perms[p][j+1]
-                                
                             else:
-                                #coeff = coeff*DIC[j+1,j]
                                 coeff = coeff*DIC[perms[p][j+1], perms[p][j]]
-                                ind1 = perms[p][j+1]
-                                ind2 = perms[p][j]
+                        # If both species are repeated
+                        elif counts[j] > 1 and counts[j+1] >1:
+                            coeff = coeff_list[j][int(counts[j]-2)]*coeff_list[j+1][int(counts[j+1]-2)]
+                            # not sure how necessary this is
+                        # Only one of the species is repeated
+                        else:
+                            coeff = coeff
+                        '''
+                            
+                        # If the next species isn't repeated    
+                        if counts[j+1] == 1:
+                            if dic_direction[q][j]:
+                                coeff = coeff*DIC[perms[p][j], perms[p][j+1]]
+                            else:
+                                coeff = coeff*DIC[perms[p][j+1], perms[p][j]]
+                        # If the next species is repeated
+                        elif counts[j+1] > 1:
+                            #coeff = coeff*coeff_list_i[perms[p][j+1]][int(counts[j+1]-2)]
+                            coeff = coeff*coeff_list_i[j+1][int(counts[j+1]-2)]
+                        else:
+                            print('oh no!')
+                                
+                                
                         
                     
                     EPs[p,q] = coeff
