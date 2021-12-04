@@ -21,9 +21,10 @@ def overall_EP(N, TIME, solutionM, Tset, Rlist, Slist, lg, expmatrixF, coeffmatr
     
     ind_list = []
     ind_list_f = []
-    #coeffs = []
+    coeffs = []
     #coeff_list = []
-    coeffs = np.zeros((len(Slist), 2, N))
+    #coeffs = np.zeros((len(Slist), 2, N))
+    iterations = np.zeros((N))
     for i in range(N):
         a = 1
         while TIME[a] < t_array[i] and a <= len(TIME):
@@ -50,16 +51,17 @@ def overall_EP(N, TIME, solutionM, Tset, Rlist, Slist, lg, expmatrixF, coeffmatr
             
             mechobj = my_mech_obj(sample, t, Tset, Rlist, Slist, lg, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB)
         
-            [EP_i, ind_listi, DIC_i, coeffs_i] = local_error_propagation(mechobj, sample, targets, reduction_type)
+            [EP_i, ind_listi, DIC_i, coeffs_i, iterations_i] = local_error_propagation(mechobj, sample, targets, reduction_type)
            # print(np.shape(EP_i))
     
             
             EP_all[:,i] = EP_i
             ind_list.append(ind_listi)
             DIC[:,:,i] = DIC_i[:-1,:]
+            iterations[i] = iterations_i
         
-            coeffs[:,:,i] = coeffs_i[:,1:3]       
-            #coeffs.append(coeffs_i)
+            #coeffs[:,:,i] = coeffs_i[:,1:3]       
+            coeffs.append(coeffs_i[:,1:])
         
     EP = np.max(EP_all, axis = 1)
 
@@ -81,7 +83,7 @@ def overall_EP(N, TIME, solutionM, Tset, Rlist, Slist, lg, expmatrixF, coeffmatr
             print('Error: ', Slist[i]['name'])
     
 
-    return [EP, mechobj, ind_list_f, DIC, DIC_ind, coeffs]
+    return [EP, mechobj, ind_list_f, DIC, DIC_ind, coeffs, iterations]
 
 
 

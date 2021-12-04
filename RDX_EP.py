@@ -117,9 +117,10 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
         # Iterate until all relevant coefficients have been included
 
         flag = True
+        count = 0
         while flag:
         
-
+            count = count+1
             # Init inner loop
             flag = False
             array_down[:] = -1.0
@@ -198,6 +199,7 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
         EP = EP_reac
         DIC = DIC_reac
         
+    iterations = count
 
     #print(np.shape(EP_spec)), 
-    return [EP, ind_list, my_DIC, coeffs]
+    return [EP, ind_list, my_DIC, coeffs, iterations]

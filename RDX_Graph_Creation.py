@@ -2,7 +2,7 @@
 RDX_Graph_Creation
 """
 
-def RDX_Graph_Creation(TIME, solutionM,t, Tset, Rlist, Slist, lg, EP):
+def RDX_Graph_Creation(TIME, solutionM,t, Tset, Rlist, Slist, lg, EP, EP_paths):
     import numpy as np
     import networkx as nx
     from stoichcalc import stoichcalc
@@ -49,20 +49,25 @@ def RDX_Graph_Creation(TIME, solutionM,t, Tset, Rlist, Slist, lg, EP):
     
     for i in range(len(Slist)):
         for j in range(len(Slist)):
-                if i!=j and DIC_spec[i,j] > 9E-1:
+                if i!=j and DIC_spec[i,j] > 1E-1:
                     if not added[i]:
+                        #G.add_nodes_from([(i, {"name": Slist[i]['name'], 'EP':EP[i], 'path':[EP_paths[i]]})])
                         G.add_nodes_from([(i, {"name": Slist[i]['name'], 'EP':EP[i]})])
                         added[i] = True
                     if not added[j]:
+                        #G.add_nodes_from([(j, {"name": Slist[j]['name'],'EP':EP[j], 'path':[EP_paths[i]]})])
                         G.add_nodes_from([(j, {"name": Slist[j]['name'],'EP':EP[j]})])
                         added[j] = True
                     G.add_edge(i, j, weight=DIC_spec[i,j]) # arrow from i to j
 
 
+    for i in range(len(Slist)):
+        nx.add_path(G, EP_paths[i], path_name = Slist[i]['name'], path_num = i)
+
     
      
-    nx.write_graphml(G, 'myRDXgraphskeletal_vvimportant_wEP.graphml')
-    return(G)
+    nx.write_graphml(G, 'myRDXgraphskeletal_wpaths.graphml')
+    return [G, DIC_spec]
 
 
 
