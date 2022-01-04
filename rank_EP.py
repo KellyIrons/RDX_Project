@@ -31,7 +31,7 @@ def rank_EP(EP, mechobj, reduction_type, Rlist):
         print('Rank       Species         EP')
         print('------------------------------')
         for i in range(J):
-            string = '%d       %s       %e \n' % (i+1,ranked_spec[i], ranked_EP[i])
+            string = '%d       %s       %e \n' % (i+1,ranked[i], ranked_EP[i])
             print(string)
      
     elif reduction_type in ['reactions', 'R']:
@@ -50,7 +50,7 @@ def rank_EP(EP, mechobj, reduction_type, Rlist):
         print('Rank    EP                Reaction')
         print('-------------------------------------------------')
         for i in range(R):
-            string = '%d       %e      %s \n' % (i+1, ranked_EP[i], ranked_reac[i])
+            string = '%d       %e      %s \n' % (i+1, ranked_EP[i], ranked[i])
             print(string)
 
     

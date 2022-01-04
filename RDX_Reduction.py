@@ -64,13 +64,12 @@ while error <= tol:
 
     # Remove a set number of species and remake the mechanism
     [new_Rlist, new_Slist, new_lg, removed, sort_ind] = remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type)
-    print('%i Species Removed' % len(removed))
+    print('%i Species Removed' % len(removed)) # Change this when I include both species and reaction reduction
     
     
-    # Temporary: Incorporate into remove and remake if it works
+    # Recalculate contant matrices for new mechanism
     [KF, KB] = rateConstantCalc2(new_Rlist, new_Slist, Tset)
     [expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB] = stoichcalc(new_Rlist,new_Slist)
-    
     
     
     # Re-run the simulation
@@ -91,7 +90,7 @@ while error <= tol:
 
 
 removed = removed[:-1]
-print('%i Species Removed' % len(removed))
+print('%i Species Removed' % len(removed)) # Change this when I include both species and reaction reduction 
 
 
 plt.plot(TIME_f, solutionM_f[:,0:len(Slist)])

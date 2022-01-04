@@ -202,4 +202,13 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
     iterations = count
 
     #print(np.shape(EP_spec)), 
-    return [EP, ind_list, my_DIC, coeffs, iterations]
+    if reduction_type in ['species', 'S']:
+        return [EP, ind_list, my_DIC, coeffs]
+    elif reduction_type in ['reactions', 'R']:
+        return EP
+
+
+
+
+
+
