@@ -1,7 +1,7 @@
 """
 RDX Remove Species and Remake Mechanism
 """
-def remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type):
+def remove_and_remake(sort_ind, R, removed_species, removed_reactions, removed_lg, Rlist, Slist, lg, reduction_type):
     
     # sort_ind = ranked species indices from rank_EP
     # N = the number of species to be removed *in this iteration*
@@ -14,11 +14,12 @@ def remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type):
     
    
     from species_removal import species_removal
+    import copy
     
     # Initialize the outputs
-    new_Rlist = Rlist.copy()
-    new_Slist = Slist.copy()
-    new_lg = lg.copy()
+    new_Rlist = copy.deepcopy(Rlist)
+    new_Slist = copy.deepcopy(Slist)
+    new_lg = copy.deepcopy(lg)
     
     
     # Identify the species to remove (take the N lowest)
@@ -34,7 +35,7 @@ def remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type):
             #Remove the species
             del new_Slist[ind]
          
-            [new_Rlist, new_lg, sort_ind] = species_removal(new_Rlist, ind, new_lg, sort_ind, reduction_type)
+            [new_Rlist, new_lg, sort_ind, removed_reactions, removed_lg] = species_removal(new_Rlist, ind, new_lg, sort_ind, reduction_type, removed_reactions, removed_lg)
             
         
             sort_ind = sort_ind[0:-1]
@@ -43,7 +44,7 @@ def remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type):
                     sort_ind[j] = sort_ind[j] - 1
             
             
-            removed.append(ind)
+            removed_species.append(ind)
             
         
     elif reduction_type in ['reactions', 'R']:
@@ -58,7 +59,7 @@ def remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type):
             print('Removed Reaction: %s' % new_Rlist[ind]['eq'])
             del new_Rlist[ind]
             
-            removed.append(ind)
+            removed_reactions.append(ind)
             
             sort_ind = sort_ind[0:-1]
             for j in range(len(sort_ind)):
@@ -83,9 +84,11 @@ def remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type):
                         r += 1
                     if not found:
                         print('Removed Species: %s' % new_Slist[j]['name'])
+                        removed_species.append(j)
                         del new_Slist[j]
+                        species.remove(j) # Added 1/11
                         # This is where I am going wrong, not changing sort_ind unless not found
-                        [new_Rlist, new_lg, sort_ind] = species_removal(new_Rlist, j, new_lg, sort_ind, reduction_type)
+                        [new_Rlist, new_lg, sort_ind, removed_reactions, removed_lg] = species_removal(new_Rlist, j, new_lg, sort_ind, reduction_type, removed_reactions, removed_lg)
                         
                     else:
                         found_species2.append(j) #note: this is in the original indexing
@@ -95,7 +98,7 @@ def remove_and_remake(sort_ind, R, removed, Rlist, Slist, lg, reduction_type):
 
         
     
-    return [new_Rlist, new_Slist, new_lg, removed, sort_ind]
+    return [new_Rlist, new_Slist, new_lg, removed_species, removed_reactions, removed_lg, sort_ind]
 
 
 

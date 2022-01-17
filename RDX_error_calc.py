@@ -2,7 +2,7 @@
 RDX Error Calculation
 """
 
-def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N, removed):
+def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N, removed_species, removed_lg, J):
     
     
     #Measure the median percent difference in results at set time steps
@@ -41,10 +41,13 @@ def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N, removed):
           
     #Calculate the percent difference
     
-    [J,b] = np.shape(solutionM_o)
+    #Need to account for species that have been removed
+    [a,b] = np.shape(solutionM_o)
     results = np.zeros((1,N))
-    for i in range(len(removed)):
-        solutionM_o =np.delete(solutionM_o, removed[i], axis=1)
+    for i in range(len(removed_lg)):
+        solutionM_o =np.delete(solutionM_o, removed_lg[i]+J, axis=1)
+    for i in range(len(removed_species)):
+        solutionM_o =np.delete(solutionM_o, removed_species[i], axis=1)
 
     #For each time step - can I vectorize this?
     for i in range(N):

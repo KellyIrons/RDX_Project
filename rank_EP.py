@@ -14,16 +14,12 @@ def rank_EP(EP, mechobj, reduction_type, Rlist):
         sort_ind = np.flipud(sort_ind)
         ranked_EP = EP[sort_ind]
         
-        print(sort_ind)
-        
+
         species = mechobj['species_names']
         ranked_spec = []
         for i in range(J):
             
             index = sort_ind[i]
-            #print(i)
-            #print(index)
-            print(species[index])
             ranked_spec.append(species[index])
 
         ranked = ranked_spec        

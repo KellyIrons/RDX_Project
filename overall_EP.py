@@ -66,6 +66,9 @@ def overall_EP(N, TIME, solutionM, Tset, Rlist, Slist, lg, expmatrixF, coeffmatr
         
     EP = np.max(EP_all, axis = 1)
 
+    return [EP, mechobj]
+# Uncomment below if making graphs!  
+'''
     if reduction_type in ['species', 'S']:
         for i in range(len(Slist)):
             if sum(EP[i] == EP_all[i,:]) == 1:
@@ -88,7 +91,7 @@ def overall_EP(N, TIME, solutionM, Tset, Rlist, Slist, lg, expmatrixF, coeffmatr
     
     elif reduction_type in ['reactions', 'R']:
         return [EP, mechobj]
-        
+ '''        
 
 
 
