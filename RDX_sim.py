@@ -2,10 +2,11 @@
 RDX Simulation
 """
 
-def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB):
+def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB, mech_type, initial_species, atol):
     import numpy as np
     import matplotlib.pylab as mat
-    from scipy.integrate import solve_ivp 
+    from scipy.integrate import solve_ivp #- old version
+    #import scipy.integrate # trying this 2/18/22
 
     Tg = 473  #Temperature of gas region - K
     P = 101325 #Atmospheric pressure - Pa
@@ -47,6 +48,9 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
         
     [a,b] = np.shape(KF)
     
+    #Find location of RDX
+    all_species_names = [x['name'] for x in Slist]
+    RDX_ind = int(all_species_names.index(initial_species))
     
     #Define Initial quantities
     YinitialRDX = 1 #initial mass fraction of RDX in liquid CV is one
@@ -54,8 +58,17 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     initialVector = np.zeros((1,J+ng))
     initialVector = initialVector.tolist()
     initialVector = initialVector[0]
-    initialVector[0] = YinitialRDX ####REDUCED
-    initialVector[J] = 1
+    initialVector[J+ng-1] = 1 # I think I need to fix this :( (was J)
+    
+    initialVector[RDX_ind] = YinitialRDX
+    
+    '''
+    if mech_type == "full":
+        initialVector[318] = YinitialRDX
+    elif mech_type == "skeletal":
+        initialVector[0] = YinitialRDX ####REDUCED
+    '''
+        
     y0, t0 = initialVector, 0
 
 
@@ -65,11 +78,26 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
         #Fix some naming inconsistencies 
         minitial = initialmass;
         rstruct = Rlist; sstruct = Slist
+        '''
+        [a,b] = np.shape(y)
+
+        ################################### Nick, look here!
+        y_full = y.copy()
+        if b >1:
+           y = y.diagonal()
+           y = np.reshape(y[:], (len(y),1))
+        ###################################
+         '''    
     
         
         #Unpack y
         massfc = y[0:J] #mass fraction of each species in condensed phase
         molefg = y[(J):(J+ng)] #mole fraction of each species in gas phase
+    
+        #print(np.shape(massfc))
+        #print(massfc)
+    
+            
     
         
         #"Correct" mass and mole fractions
@@ -211,6 +239,11 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
             sumTerm = sumTerm + massfc[index]*kLG[0,i] #add this species's contribution
         
         #calculate eq (2) for each condensed species
+        #print(np.shape(sumTerm))
+       # print(np.shape(massfc))
+        #print(np.shape(kLG))
+        #print(np.shape(w))
+        #print(np.shape(MW))
         massfcdot= w*MW*(1/rho) - np.transpose(massfc, axes=None)*kLG + np.transpose(massfc, axes=None)*sumTerm
         
         ### Now look at the gas phase ###
@@ -245,17 +278,40 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     
         zdot = np.ndarray.tolist(zdot)
         #print(zdot)
-        #print(t)
+        print(t)
+        
+       # [a,b] = np.shape(y_full)
+
         
     
         return zdot
 
     t1 = 2.0 #set the stop time
 
-    r = solve_ivp(myrhs, (0,t1), y0, method="LSODA", vectorized = True, atol = 1e-10)
+   # Trying something different 2/18/22
+    r = solve_ivp(myrhs, (0,t1), y0, method="LSODA", vectorized = True, atol = atol)
+    #changed tol from 1e-8
+    '''
+    solutionM = []
+    TIME = []
     
-    
-    
+    #ode = ReactorOde(gas)
+    solver = scipy.integrate.ode(myrhs)
+    solver.set_integrator('vode', method='lsoda', with_jacobian=True, atol=atol)
+    #solver.set_initial_value(y0, t0)​
+    solver.set_initial_value(y0, t0)
+    # Integrate the equations, keeping T(t) and Y(k,t)
+    t_end = t1
+    #states = ct.SolutionArray(gas, 1, extra={'t': [0.0]})
+    dt = 1e-5
+    while solver.successful() and solver.t < t_end:
+        solver.integrate(solver.t + dt)
+       # gas.TPY = solver.y[0], P, solver.y[1:]
+       # states.append(gas.state, t=solver.t)
+        solutionM.append(solver.y)
+       TIME.append(solver.time)
+    '''   
+
     TIME = r['t']
     solutionM = r['y']
     solutionM = solutionM.transpose()
