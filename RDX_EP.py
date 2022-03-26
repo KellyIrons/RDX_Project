@@ -5,7 +5,7 @@ Created on Wed Apr 28 09:28:45 2021
 
 @author: kirons
 """
-def local_error_propagation(mechobj, mysample, targets, reduction_type):
+def local_error_propagation(mechobj, mysample, targets, reduction_type, EPmin):
 #def local_error_propagation(mechobj, mysample, targets, reduction_type, alpha_norm_loc):
     """ Computes error propagation coefficients on one sample
 
@@ -54,7 +54,8 @@ def local_error_propagation(mechobj, mysample, targets, reduction_type):
 
     # Parameters
     #EPmin = 1e-7
-    EPmin = 1E-15
+    #EPmin = 1E-15 # OK for species
+    #EPmin = 1E-35
     EPcomp = np.zeros(myns, 'd')
     EP_spec = np.zeros(myns, 'd')
     EP_reac = np.zeros(mynr, 'd')
