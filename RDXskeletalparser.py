@@ -22,8 +22,8 @@ def RDXskeletalparser():
     #nSkeletal = len(skeletalReactions) #number of skeletal reactions 
 
     #Parse Mechanism
-    from RDXparser2 import RDXparser2
-    [Rlist, Slist, lg] = RDXparser2() 
+    from RDXfullparser import RDXfullparser
+    [Rlist, Slist, lg] = RDXfullparser() 
     
     nFull = len(Rlist) #total number of reactions
     
@@ -86,7 +86,7 @@ def RDXskeletalparser():
         oldS = species['index']
         ind = indices.index(oldS)
         species['index'] = ind
-        species['MW'] = Slist[ind]['MW']
+        species['MW'] = S_Slist[ind]['MW']
     S_lg = lg
     
 
