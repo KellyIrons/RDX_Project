@@ -24,11 +24,13 @@ def rank_EP(EP, mechobj, reduction_type, Rlist):
 
         ranked = ranked_spec        
 
+        '''
         print('Rank       Species         EP')
         print('------------------------------')
         for i in range(J):
             string = '%d       %s       %e \n' % (i+1,ranked[i], ranked_EP[i])
             print(string)
+        '''
      
     elif reduction_type in ['reactions', 'R']:
         R= len(EP)
@@ -42,13 +44,14 @@ def rank_EP(EP, mechobj, reduction_type, Rlist):
             ranked_reac.append(Rlist[index]['eq'])
             
         ranked = ranked_reac
-            
+        
+        '''
         print('Rank    EP                Reaction')
         print('-------------------------------------------------')
         for i in range(R):
             string = '%d       %e      %s \n' % (i+1, ranked_EP[i], ranked[i])
             print(string)
-
+        '''
     
     
     return [ranked_EP, ranked, sort_ind]
