@@ -278,7 +278,7 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     
         zdot = np.ndarray.tolist(zdot)
         #print(zdot)
-        print(t)
+        #print(t)
         
        # [a,b] = np.shape(y_full)
 

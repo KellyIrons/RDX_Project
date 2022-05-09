@@ -37,8 +37,8 @@ def RDX_error_calc(TIME_o, solutionM_o, solutionM_r, TIME_r, N, removed_species,
     old_i[0, N-1] = len(TIME_o) - 1 
     new_i[0, N-1] = len(TIME_r) - 1
     
-    print(new_i)
-    print(old_i)
+    #print(new_i)
+    #print(old_i)
     #Calculate the percent difference
     
     #Need to account for species that have been removed
