@@ -4,10 +4,7 @@ RDX_find_EP_path v2
 
 def RDX_find_EP_path2(ind_list, mechobj, EP, DIC_ind, DIC_spec, targets, coeff_list):
     
-    
-    import numpy as np
-    import itertools as itertools
-    from itertools import permutations
+
     
     S = len(ind_list)
     

@@ -2,11 +2,11 @@
 RDX Simulation
 """
 
-def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB, mech_type, initial_species, atol):
+def RDX_sim2(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB, coeffmatrixB, mech_type, initial_species, atol):
     import numpy as np
     import matplotlib.pylab as mat
-    from scipy.integrate import solve_ivp #- old version
-    #import scipy.integrate # trying this 2/18/22
+    #from scipy.integrate import solve_ivp - old version
+    import scipy.integrate # trying this 2/18/22
 
     Tg = 473  #Temperature of gas region - K
     P = 101325 #Atmospheric pressure - Pa
@@ -112,7 +112,7 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
         gasMoles = constantMoles*molefg #gasMoles is a vector of the number of moles of each gas phase species
         gasMoles = 	np.transpose(gasMoles) #transpose gasMoles
         gasMass = gasMoles*MW[0,gasI] #gasMass is a vector of the mass of each gas phase species
-        massLoss = np.sum(gasMass, axis=1) - gasMass[0,ng-1] #total mass in gas phase (excluding purge gas)
+        massLoss = np.sum(gasMass, axis=0) - gasMass[ng-1] #total mass in gas phase (excluding purge gas)
             # this is ok for now, since the N2 doesn't evaporate atm
     
     
@@ -279,17 +279,21 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
         zdot = np.ndarray.tolist(zdot)
         #print(zdot)
         print(t)
-        
-       # [a,b] = np.shape(y_full)
+        '''
+        [a,b] = np.shape(y_full)
 
-        
+        if b >1:
+            zdot = np.asarray(zdot)
+            zdot = np.reshape(zdot, b)
+            zdot = np.diag(zdot)
+        '''
     
         return zdot
 
     t1 = 2.0 #set the stop time
 
-   # Trying something different 2/18/22
-    r = solve_ivp(myrhs, (0,t1), y0, method="LSODA", vectorized = True, atol = atol)
+    ''' Trying something different 2/18/22
+    r = solve_ivp(myrhs, (0,t1), y0, method="BDF", vectorized = True, atol = 1e-15)
     #changed tol from 1e-8
     '''
     solutionM = []
@@ -297,7 +301,7 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
     
     #ode = ReactorOde(gas)
     solver = scipy.integrate.ode(myrhs)
-    solver.set_integrator('vode', method='lsoda', with_jacobian=True, atol=atol)
+    solver.set_integrator('vode', method='bdf', with_jacobian=True, atol=atol)
     #solver.set_initial_value(y0, t0)​
     solver.set_initial_value(y0, t0)
     # Integrate the equations, keeping T(t) and Y(k,t)
@@ -309,12 +313,13 @@ def RDX_sim(Rlist, Slist, lg, Tset, KF, KB, expmatrixF, coeffmatrixF, expmatrixB
        # gas.TPY = solver.y[0], P, solver.y[1:]
        # states.append(gas.state, t=solver.t)
         solutionM.append(solver.y)
-       TIME.append(solver.time)
-    '''   
-
+        TIME.append(solver.t)
+        
+    '''
     TIME = r['t']
     solutionM = r['y']
     solutionM = solutionM.transpose()
+    '''
     #solutionM = solutionM[:,0:J]
     #solutionM = solutionM[:,0:J-1]
     

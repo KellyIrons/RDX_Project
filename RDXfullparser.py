@@ -1,7 +1,7 @@
 '''
 RDX MECHANISM PARSER v2
 '''
-def RDXparser2():
+def RDXfullparser():
 
     ### Create a string of species names ###
     spec = " " #initialize a string of species names
@@ -121,7 +121,10 @@ def RDXparser2():
     for x in range(len(index)):
         index[x] = index[x] - 1
         E[x] = 4.184*E[x]
-        D = { 'index':index[x], 'A':A[x], 'n':n[x], 'E':E[x]}
+        #MW = Slist[x]['MW']   THIS IS WRONG!!!   fixed 2/9
+        MW = Slist[index[x]]['MW']
+        
+        D = { 'index':index[x], 'A':A[x], 'n':n[x], 'E':E[x], 'MW':MW}
         lg.append(D)
         
     return [Rlist, Slist, lg]
